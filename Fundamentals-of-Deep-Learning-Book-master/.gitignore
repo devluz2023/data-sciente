@@ -1,0 +1,20 @@
+# Data files
+*.gz
+data/
+!data/README.md
+!ch05_implementing_nn_pytorch/data/
+
+# babi saved model
+dnc/babi-model
+
+# Python
+*.pyc
+
+# Mac OS X custom attribute files
+.DS_Store
+
+# Logs
+*logs*/
+
+.ipynb_checkpoints
+MNIST
