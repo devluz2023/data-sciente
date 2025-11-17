@@ -1,0 +1,35 @@
+#######################################################################
+# A Helm values file for the authorization server
+# https://github.com/curityio/idsvr-helm/blob/master/idsvr/values.yaml
+#######################################################################
+
+replicaCount: 2
+
+image:
+  repository: curity.azurecr.io/curity/idsvr
+  tag: latest
+
+curity:
+  adminUiHttp: true
+  admin:
+    logging:
+      level: INFO
+
+  runtime:
+    logging:
+      level: INFO
+    
+  config:
+    uiEnabled: true
+    skipInstall: true
+    configuration:
+      - configMapRef:
+          name: idsvr-configbackup
+          items:
+            - key: configbackup
+              path: idsvr-config-backup.xml
+    environmentVariableConfigMaps:
+      - idsvr-config-properties
+
+networkpolicy:
+  enabled: false

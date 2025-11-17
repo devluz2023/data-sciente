@@ -1,0 +1,65 @@
+#!/bin/bash
+
+###############################################################################
+# Deploy Postgres and configure it to require mutual TLS for remote connections
+# The database server also uses an X509 SVID for its service identity
+###############################################################################
+
+cd "$(dirname "${BASH_SOURCE[0]}")"
+
+#
+# Create the applications namespace if required
+#
+kubectl create namespace applications
+
+#
+# Fix problems with trailing newline characters in Docker bash scripts downloaded from Git
+#
+if [[ "$(uname -s)" == MINGW64* ]]; then
+  sed -i 's/\r$//' init-dbserver.sh
+fi
+
+#
+# Build the database server custom docker image and load it into the KIND docker registry
+#
+docker build --no-cache -t dbserver:v1 .
+if [ $? -ne 0 ]; then
+  echo '*** Problem encountered building the database server docker image'
+  exit 1
+fi
+
+kind load docker-image dbserver:v1 --name example
+if [ $? -ne 0 ]; then
+  echo '*** Problem encountered loading the database server docker image into the Docker registry'
+  exit 1
+fi
+
+#
+# Create a configmap for the SPIFFE helper init container that gets initial SVIDs before the Postgres container runs
+#
+kubectl -n applications delete configmap dbserver-spiffehelper-init-config 2>/dev/null
+kubectl -n applications create configmap dbserver-spiffehelper-init-config --from-file='./helper-init.conf'
+if [ $? -ne 0 ]; then
+  echo '*** Problem encountered creating the SPIFFE helper init configmap for the dbserver'
+  exit 1
+fi
+
+#
+# Create a configmap for this the SPIFFE helper sidecar that runs permanently and deals with SVID renewal
+#
+kubectl -n applications delete configmap dbserver-spiffehelper-config 2>/dev/null
+kubectl -n applications create configmap dbserver-spiffehelper-config --from-file='./helper.conf'
+if [ $? -ne 0 ]; then
+  echo '*** Problem encountered creating the SPIFFE helper configmap for the dbserver'
+  exit 1
+fi
+
+#
+# Deploy the database server pod
+#
+kubectl -n applications delete -f dbserver.yaml 2>/dev/null
+kubectl -n applications apply  -f dbserver.yaml
+if [ $? -ne 0 ]; then
+  echo '*** Problem encountered deploying the database server'
+  exit 1
+fi

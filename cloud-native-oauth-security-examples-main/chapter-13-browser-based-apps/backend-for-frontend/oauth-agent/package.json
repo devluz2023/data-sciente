@@ -1,0 +1,30 @@
+{
+    "name": "oauth-agent-node-express",
+    "version": "1.6.0",
+    "description": "A Docker OAuth Agent that uses Node.js and the Express HTTP server",
+    "scripts": {
+        "start": "tsx --watch src/server.ts",
+        "test": "./test/test-oauth-agent.sh",
+        "build": "rm -rf dist && tsc"
+    },
+    "author": "Curity AB",
+    "license": "Apache-2.0",
+    "type": "module",
+    "engines": {
+        "node": ">=22"
+    },
+    "dependencies": {
+        "cookie": "^1.0.1",
+        "cookie-parser": "^1.4.6",
+        "cors": "^2.8.5",
+        "express": "^5.1.0",
+        "jose": "^6.0.13"
+    },
+    "devDependencies": {
+        "@types/cookie-parser": "^1.4.6",
+        "@types/cors": "^2.8.17",
+        "@types/express": "^5.0.3",
+        "tsx": "^4.20.3",
+        "typescript": "^5.9.2"
+    }
+}

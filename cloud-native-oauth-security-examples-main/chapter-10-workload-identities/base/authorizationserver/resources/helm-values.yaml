@@ -1,0 +1,54 @@
+replicaCount: 2
+
+image:
+  repository: curity.azurecr.io/curity/idsvr
+  tag: latest
+
+curity:
+  adminUiHttp: true
+  admin:
+    podLabels:
+      sidecar.istio.io/inject: 'true'
+      spire-managed-identity: 'true'
+    podAnnotations:
+      inject.istio.io/templates: 'sidecar,spire'
+    service:
+      annotations:
+        ingress.kubernetes.io/service-upstream: 'true'
+    serviceAccount:
+      name: curity-idsvr-admin
+    logging:
+      level: INFO
+
+  runtime:
+    podLabels:
+      sidecar.istio.io/inject: 'true'
+      spire-managed-identity: 'true'
+    podAnnotations:
+      inject.istio.io/templates: 'sidecar,spire'
+    service:
+      annotations:
+        ingress.kubernetes.io/service-upstream: 'true'
+    serviceAccount:
+      name: curity-idsvr-runtime
+    logging:
+      level: INFO
+    
+  config:
+    uiEnabled: true
+    skipInstall: true
+    configuration:
+      - configMapRef:
+          name: idsvr-configbackup
+          items:
+          - key: config-backup
+            path: config-backup.xml
+
+    environmentVariableConfigMaps:
+    - idsvr-parameters
+    environmentVariableSecrets:
+    - idsvr-protected-parameters
+
+networkpolicy:
+  enabled: true
+  apigatewayNamespace: kong
